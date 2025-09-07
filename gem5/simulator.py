@@ -105,7 +105,7 @@ def parse_submission_result(result: Union[List[Dict[str, Any]], Dict[str, Any]])
     
 def _parse_submission(result: Dict[str, Any]):
     # pprint(f"Result: {result}")
-    pprint(f"Keys: {result.keys()}")
+    # pprint(f"Keys: {result.keys()}")
     if any(["v0" in key for key in result.keys()]):
         # return _parse_submission_pair(result)
         return PiePairResult.from_dict(result)

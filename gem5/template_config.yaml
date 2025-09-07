@@ -1,6 +1,6 @@
-model_generated_outputs_path: "PATH_TO_YOUR_OUTPUTS"
-reference_file_path: "PATH_TO_REFERENCE_FILE_JSONL" # The path to the reference file. This should be the reference .jsonl file containing the reference outputs in addition to all other metadata in the test set file.
-output_dir: "PATH_TO_DIRECTORY_WHERE_YOU_WANT_TO_SAVE_EVALUATION_RESULTS"
+model_generated_outputs_path: "/data/btguan/pie/optm_generation/optm.jsonl"
+reference_file_path: "/data/btguan/pie/optm_generation/test.jsonl" # The path to the reference file. This should be the reference .jsonl file containing the reference outputs in addition to all other metadata in the test set file.
+output_dir: "./test_sep7_2"
 is_prompt_based: False # should always be False
 cpus_available: -1
 model_generated_potentially_faster_code_col: "generated_answers" # column in the model-generated outputs that contains the generated code, it should be a list of strings

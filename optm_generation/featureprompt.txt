@@ -1,0 +1,112 @@
+Two programs are provided below: the first one is optimized for execution speed, while the second one is the unoptimized version. Please summarize the optimizable features and their corresponding optimization operations by simulating the way a compiler performs code optimization. Each item should be as independent as possible, and for each feature, list all the required conditions that the unoptimized code must satisfy. Write the result in a JSON structure.
+
+An example is given below:
+
+Optimized version:
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int s;
+    cin >> s;
+    unordered_set<int> visited; 
+    visited.insert(s); 
+
+    int steps = 0;
+    while (true) {
+        steps++;
+        s = (s % 2 == 0) ? (s / 2) : (s * 3 + 1); 
+
+        if (visited.count(s)) {
+            cout << steps + 1 << endl; 
+            return 0;
+        }
+        visited.insert(s); 
+    }
+}
+
+Unoptimized version：
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int s;
+    cin >> s;
+    int a[2000000] = {};
+    bool flag[10000] = {};
+    a[0] = s;
+    flag[a[0]] = true;
+    int i = 1;
+    while(1) {
+        if (a[i - 1] % 2 == 0) a[i] = a[i - 1] / 2;
+        else a[i] = a[i - 1] * 3 + 1;
+        if (flag[a[i]]) {
+            cout << i + 1 << endl;
+            return 0;
+        }
+        flag[a[i]] = true;
+        i++;
+    }
+}
+
+Summary of the optimizable features：
+[
+  {
+    "Unoptimized Code Conditions": [
+      "Uses a fixed-size array to store all generated sequence values",
+      "Array size must be predetermined, which may be too large (wasting memory) or too small (risk of overflow)",
+      "Relies on array indexing to track historical values"
+    ],
+    "Optimization Operation": "Replace with a dynamic container (e.g., unordered_set) to avoid preallocating massive arrays, while still supporting dynamic growth and fast lookups."
+  },
+  {
+    "Unoptimized Code Conditions": [
+      "Uses a boolean array 'flag' to mark whether an integer has appeared",
+      "Array indices directly correspond to integer values",
+    ],
+    "Optimization Operation": "Use a hash-based set (unordered_set) to store seen values, eliminating dependence on fixed-size arrays and preventing out-of-range errors."
+  },
+  {
+    "Unoptimized Code Conditions": [
+      "Each step result is stored in array a[i]",
+      "Computation in later steps depends on accessing a[i-1]"
+    ],
+    "Optimization Operation": "Remove the sequence array and update the current value directly in a single variable, reducing memory writes and index lookups."
+  },
+  {
+    "Unoptimized Code Conditions": [
+      "Conditional logic is written using multi-line if-else statements",
+      "Every update requires branching with explicit assignments"
+    ],
+    "Optimization Operation": "Simplify the update expression using the ternary operator (?:), improving readability and reducing instruction overhead."
+  },
+  {
+    "Unoptimized Code Conditions": [
+      "Loop step count is tied to array index i",
+      "The array index doubles as both storage position and step counter"
+    ],
+    "Optimization Operation": "Introduce an independent counter (steps) to track iterations, avoiding unnecessary coupling with array index and making the logic cleaner."
+  },
+  {
+    "Unoptimized Code Conditions": [
+      "Code includes unused typedefs, macros, and character constant comments",
+      "These add no functionality but increase compilation and reading overhead"
+    ],
+    "Optimization Operation": "Remove irrelevant typedefs, macros, and comments, leaving only essential code for clarity and efficiency."
+  }
+]
+
+
+Please summarize the program below：
+
+Optimized version：
+
+${tgt_code}
+
+Unoptimized version：
+
+${src_code}
+
+Summary of the optimizable features：

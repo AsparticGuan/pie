@@ -141,6 +141,7 @@ def report_results(df, cfg, orig_df):
         for i, row in df.iterrows():
             for j in range(num_generated_cols):
                 colname = f"{cfg.model_generated_potentially_faster_code_col}_{j}" if num_generated_cols > 0 else cfg.model_generated_potentially_faster_code_col
+                # print(row)
                 if row[colname] is None or pd.isna(row[colname]) or pd.isnull(row[colname]):
                     row[f"{colname}_agg_runtime_adjusted"] = float("inf")
                 if row[f"{colname}_accuracy"] < cfg.threshold_accuracy:
@@ -282,7 +283,7 @@ def read_inputs_and_prepare_v2(cfg) -> pd.DataFrame:
     # if the generated code is a list, then we have multiple generations per input. 
     # we add one column per generation
     if isinstance(merged[cfg.model_generated_potentially_faster_code_col].iloc[0], list) or isinstance(merged[cfg.model_generated_potentially_faster_code_col].iloc[0], pd.Series) or (merged[cfg.model_generated_potentially_faster_code_col].iloc[0][0] == '[' and merged[cfg.model_generated_potentially_faster_code_col].iloc[0][-1] == ']'):
-        
+
         if isinstance(merged[cfg.model_generated_potentially_faster_code_col].iloc[0], str):
             import ast
             merged[cfg.model_generated_potentially_faster_code_col] = merged[cfg.model_generated_potentially_faster_code_col].apply(lambda x: ast.literal_eval(x))
@@ -371,7 +372,7 @@ def main(cfg):
             if not os.path.exists(cfg.output_dir):
                 os.makedirs(cfg.output_dir)
             global env
-            env = simulator.make(timeout_seconds_gem5=120, verbose=True, use_logical_cpus=True, port=8888, workers=40, exit_early_on_fail=True)
+            env = simulator.make(timeout_seconds_gem5=120, verbose=True, use_logical_cpus=True, port=8888, workers=-1, exit_early_on_fail=True)
             ## iterate in batches of cpus_available, env.submit_mutliple_single_submissions() will submit the batch at once
             new_rows = []
             pbar = tqdm(total=len(melted), desc=f"Submitting {len(melted)} programs to evaluate", smoothing=0)
