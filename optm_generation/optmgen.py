@@ -47,6 +47,7 @@ async def process_line(idx: int, line: str, summary: str,
         "Here is a summary of the source code to help you understand it:\n"
         f"{code_summary}\n\n"
         "Now optimize the following C++ code by applying the above optimization strategies one by one. "
+        "Output the current optimized code after each step, and finally output the complete optimized code using all optimizations."
         "After optimizing the C++ code, make sure all required headers are included and all macros are correctly defined.\n\n"
         f"{src_code}"
     )
