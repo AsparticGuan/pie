@@ -41,15 +41,47 @@ async def process_line(idx: int, line: str, summary: str,
     # 从 summary 文件里取总结
     code_summary = summary_data.get("summary", "")
 
+    # prompt = (
+    #     "Here are list of optimization strategies:\n"
+    #     f"{analysis}\n\n"
+    #     "Here is a summary of the source code to help you understand it:\n"
+    #     f"{code_summary}\n\n"
+    #     "Now optimize the following C++ code by applying the above optimization strategies one by one. "
+    #     "Output the current optimized code after each step, and finally output the complete optimized code using all optimizations.\n\n"
+    #     # "After optimizing the C++ code, make sure all required headers are included and all macros are correctly defined.\n\n"
+    #     f"{src_code}"
+    #     "After optimizing the C++ code, add the header file `bits/stdc++.h` and make sure all macros are correctly defined.\n"
+    #     ""
+    # )
+
     prompt = (
         "Here are list of optimization strategies:\n"
         f"{analysis}\n\n"
         "Here is a summary of the source code to help you understand it:\n"
         f"{code_summary}\n\n"
-        "Now optimize the following C++ code by applying the above optimization strategies one by one. "
-        "Output the current optimized code after each step, and finally output the complete optimized code using all optimizations."
-        "After optimizing the C++ code, make sure all required headers are included and all macros are correctly defined.\n\n"
-        f"{src_code}"
+        "Now optimize the following C++ code by applying the above optimization strategies one by one.\n"
+        "\n"
+        "For each step:\n"
+        "1. State which optimization strategy is applied.\n"
+        "2. Explain why this optimization improves performance.\n"
+        "3. Explain why this modification does not change the logical behavior of the program "
+        "(provide a brief reasoning or input/output comparison).\n"
+        "4. Output the complete optimized C++ code after applying this step. Always output a full, "
+        "independently compilable program.\n"
+        "\n"
+        "Important constraints:\n"
+        "- The optimized code must preserve the original functionality and logic exactly.\n"
+        "- If an optimization risks breaking correctness or changing behavior, skip it and explain why.\n"
+        "- Always include required headers and ensure all macros are properly defined.\n"
+        "- Each intermediate code must be syntactically correct and compilable.\n"
+        "\n"
+        "At the final step:\n"
+        "- Combine all valid optimizations into one complete program.\n"
+        "- Double-check and explicitly confirm that the final code is logically equivalent to the original.\n"
+        "- Ensure the final code includes `#include <bits/stdc++.h>` and all macros are correctly defined.\n"
+        "\n"
+        "Here is the original source code:\n"
+        f"{src_code}\n"
     )
 
     last_err = None
