@@ -1,5 +1,7 @@
 Extract all optimization features from a program that can improve the execution speed of the program, describe the features of the program in detail, and write them in a JSON. 
 
+These optimization features can focus not only on fine-grained statement-level modifications, but should also explore whether there is room for optimization at the overall algorithmic level.
+
 When extracting optimization features, pay special attention to some common optimization methods, such as input/output optimization (cout/cin → printf/scanf or enabling ios::sync_with_stdio(false)), loop unrolling, avoiding fixed allocation of large arrays, reducing memory copying, etc.
 
 An example is given below:
