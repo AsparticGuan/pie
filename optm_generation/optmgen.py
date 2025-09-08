@@ -42,8 +42,7 @@ async def process_line(idx: int, line: str, summary: str,
     code_summary = summary_data.get("summary", "")
 
     prompt = (
-        "Here are list of optimization strategies you can use in the following code:\n"
-        # "Here are list of optimization strategies:\n"
+        "Here are list of optimization strategies:\n"
         f"{analysis}\n\n"
         "Here is a summary of the source code to help you understand it:\n"
         f"{code_summary}\n\n"
