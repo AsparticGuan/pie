@@ -114,7 +114,8 @@ if __name__ == "__main__":
 
     # 4. 加载模型
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = SentenceTransformer("nomic-ai/nomic-embed-text-v1.5", trust_remote_code=True, device=device)
+    # model = SentenceTransformer("nomic-ai/nomic-embed-text-v1.5", trust_remote_code=True, device=device)
+    model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2", trust_remote_code=True, device=device)
 
     # 5. 计算数据库 embedding
     db_embeddings = model.encode(db_texts, convert_to_tensor=True, show_progress_bar=True)
