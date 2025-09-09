@@ -63,7 +63,7 @@ async def process_line(idx: int, line: str, summary: str,
             )
 
             completion = response.choices[0].message.content
-            completion_extracted = "#include <bits/stdc++.h>\n" + extract_code_block(completion)
+            completion_extracted = extract_code_block(completion)
 
             out_obj = dict(data)
             out_obj["__idx"] = idx
