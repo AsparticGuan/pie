@@ -144,4 +144,4 @@ if __name__ == "__main__":
         for obj in all_objs:
             writer.write(obj)
 
-    print("✅ GPU batch matching completed. Results saved to match.jsonl (compact JSON, no \\n mess)")
+    print("✅ GPU batch matching completed. Results saved to match.jsonl.")
