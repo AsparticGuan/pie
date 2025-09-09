@@ -49,8 +49,8 @@ async def process_line(idx: int, line: str, summary: str,
         "Now optimize the following C++ code by applying the above optimization strategies one by one. "
         # "Output the current optimized code after each step, and finally output the complete optimized code using all optimizations.\n\n"
         "After optimizing the C++ code, make sure all required headers are included and all macros are correctly defined.\n\n"
+        ""
         f"{src_code}"
-        # "After optimizing the C++ code, add the header file `bits/stdc++.h` and make sure all macros are correctly defined.\n"
     )
 
     last_err = None
@@ -58,7 +58,8 @@ async def process_line(idx: int, line: str, summary: str,
         try:
             response = await client.chat.completions.create(
                 model="gpt-4o-mini",  # 你要的模型
-                messages=[{"role": "user", "content": prompt}],
+                messages=[{"role": "system","content": "You are an expert C/C++ assistant that generates optimized code from slower code versions."},
+                          {"role": "user", "content": prompt}],
                 temperature=0.7
             )
 
