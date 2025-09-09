@@ -1,6 +1,8 @@
 Extract all optimization features from a program that can improve the execution speed of the program, describe the features of the program in detail, and write them in a JSON. 
 
-When extracting optimization features, pay special attention to some common optimization methods, such as input/output optimization (cout/cin → printf/scanf or enabling ios::sync_with_stdio(false)), loop unrolling, avoiding fixed allocation of large arrays, reducing memory copying, etc.
+The optimization here not only involves adding or removing statements, but more importantly, it should consider whether there is room to optimize the overall algorithm. Multithreading is not within the scope of optimization.
+
+When extracting optimization features, pay special attention to some common optimization methods, such as input/output optimization (cout/cin → printf/scanf), loop unrolling, avoiding fixed allocation of large arrays, reducing memory copying, etc.
 
 An example is given below:
 
