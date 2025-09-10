@@ -15,14 +15,14 @@ client = AsyncOpenAI(
 with open("featureprompt.txt", "r", encoding="utf-8") as f:
     prompt_template = Template(f.read())
 
-# 读取前 100 条数据
+# 读取train/val集数据
 data = []
-with open("test.jsonl", "r", encoding="utf-8") as f:
+with open("val.jsonl", "r", encoding="utf-8") as f:
     for i, line in enumerate(f):
-        if i < 100:
-            data.append(json.loads(line))
-        else:
-            break
+        # if i < 100:
+        data.append(json.loads(line))
+        # else:
+        #     break
 
 async def call_with_retry(prompt, max_retries=100, base_delay=1.0):
     """带重试的 API 调用"""
@@ -75,7 +75,7 @@ async def main():
             if line:  # 过滤掉 None
                 out_f.write(line + "\n")
 
-    print("前 100 条已处理并保存到 feature.jsonl")
+    print("已处理并保存到 feature.jsonl")
 
 if __name__ == "__main__":
     asyncio.run(main())
