@@ -1,81 +1,108 @@
 import json
 import asyncio
 import random
+from pathlib import Path
 from string import Template
-from tqdm import tqdm
+
+from tqdm.asyncio import tqdm
 from openai import AsyncOpenAI
 
 # 初始化异步客户端
 client = AsyncOpenAI(
-    api_key="no-needed",
+    api_key="no-needed",   # 换成真实 key 时替换
     base_url="http://localhost:4141/"
 )
 
-# 读取 prompt 模板
-with open("featureprompt.txt", "r", encoding="utf-8") as f:
-    prompt_template = Template(f.read())
 
-# 读取train/val集数据
-data = []
-with open("val.jsonl", "r", encoding="utf-8") as f:
-    for i, line in enumerate(f):
-        # if i < 100:
-        data.append(json.loads(line))
-        # else:
-        #     break
+def load_prompt_template(file_path: str) -> Template:
+    """从文本文件加载 Prompt 模板"""
+    with open(file_path, "r", encoding="utf-8") as f:
+        return Template(f.read())
 
-async def call_with_retry(prompt, max_retries=100, base_delay=1.0):
-    """带重试的 API 调用"""
-    for attempt in range(max_retries):
-        try:
-            response = await client.chat.completions.create(
-                model="gpt-4.1",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant for code optimization analysis."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7
-            )
-            return response
-        except Exception as e:
-            wait = base_delay * (2 ** attempt) + random.uniform(0, 0.5)
-            print(f"⚠️ 调用失败: {e}, {wait:.1f}s 后重试 (第 {attempt+1}/{max_retries} 次)")
-            await asyncio.sleep(wait)
-    print("❌ 超过最大重试次数，跳过该条数据")
-    return None
 
-async def process_item(item):
-    """异步处理单条数据"""
-    src_code = item.get("src_code", "")
-    tgt_code = item.get("tgt_code", "")
+async def process_item(record: dict, prompt_template: Template,
+                       semaphore: asyncio.Semaphore,
+                       max_retries: int = 100, base_delay: float = 1.0) -> dict:
+    """处理单条数据，带重试和并发限制"""
+    src_code = record.get("src_code", "")
+    tgt_code = record.get("tgt_code", "")
+    last_err = None
+
+    if not src_code and not tgt_code:
+        record["analysis"] = ""
+        return record
+
     prompt = prompt_template.safe_substitute(src_code=src_code, tgt_code=tgt_code)
 
-    response = await call_with_retry(prompt)
-    if not response:
-        return None
+    async with semaphore:  # 限制并发量
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = await client.chat.completions.create(
+                    model="gpt-4.1",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant for code optimization analysis."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.7
+                )
+                analysis = response.choices[0].message.content.strip()
+                record["analysis"] = analysis
+                return record
 
-    analysis = response.choices[0].message.content.strip()
-    output_item = dict(item)
-    output_item["analysis"] = analysis
-    return json.dumps(output_item, ensure_ascii=False)
+            except Exception as e:
+                last_err = e
+                if attempt < max_retries:
+                    delay = base_delay * (2 ** (attempt - 1)) + random.uniform(0, 0.5)
+                    print(f"⚠️ Error on record {record['__idx']} "
+                          f"(attempt {attempt}/{max_retries}): {e}. Retrying in {delay:.1f}s...")
+                    await asyncio.sleep(delay)
+                else:
+                    record["analysis"] = f"Error after {max_retries} attempts: {last_err}"
+                    return record
+
 
 async def main():
-    # 创建任务
-    tasks = [process_item(item) for item in data]
+    input_file = Path("val.jsonl")
+    output_file = Path("feature.jsonl")
+    prompt_file = Path("featureprompt.txt")
 
-    # gather 保持顺序
-    results = await asyncio.gather(*tasks)
+    prompt_template = load_prompt_template(prompt_file)
 
-    # tqdm 展示进度（这里用异步模拟进度条）
-    for _ in tqdm(range(len(results)), desc="Processing"):
-        await asyncio.sleep(0)
+    # 并发限制，比如同时最多 100 个任务
+    max_concurrency = 100
+    semaphore = asyncio.Semaphore(max_concurrency)
 
-    with open("feature.jsonl", "w", encoding="utf-8") as out_f:
-        for line in results:
-            if line:  # 过滤掉 None
-                out_f.write(line + "\n")
+    # 加载数据
+    records = []
+    with input_file.open("r", encoding="utf-8") as f:
+        for i, line in enumerate(f):
+            try:
+                data = json.loads(line)
+                data["__idx"] = i
+                records.append(data)
+            except Exception as e:
+                print(f"⚠️ Error parsing JSON line {i}: {e}")
 
-    print("已处理并保存到 feature.jsonl")
+    tasks = [process_item(r, prompt_template, semaphore) for r in records]
+
+    results = []
+    with tqdm(total=len(tasks), desc="Processing") as pbar:
+        for coro in asyncio.as_completed(tasks):
+            result = await coro
+            results.append(result)
+            pbar.update(1)
+
+    # 恢复顺序
+    results.sort(key=lambda r: r["__idx"])
+
+    # 写入输出文件
+    with output_file.open("w", encoding="utf-8") as out_f:
+        for r in results:
+            r.pop("__idx", None)  # 删除内部索引
+            out_f.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+    print(f"\n✅ 已处理 {len(results)} 条，结果保存在 {output_file}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
