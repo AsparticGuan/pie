@@ -54,10 +54,11 @@ async def process_line(idx: int, line: str, summary: str,
         # "After optimizing the C++ code, make sure all required headers are included and all macros are correctly defined."
         "After optimizing the C++ code, make sure all required headers are included and all macros are correctly defined, while keeping the code as minimal as possible."
         "Also make sure to check whether the arguments passed to functions meet the type requirements."
-        "You need to output the optimized code as well as the code after correctness checking. "
+        # "You need to output the optimized code as well as the code after correctness checking. "
         # "Make sure to use the code summary above to ensure the correctness of the code logic. "
         "You can compare the logic of the source code and the optimized code to ensure that the optimized code has consistent functionality with the source code and that its logic is correct."
         "When checking correctness, you must not sacrifice code efficiency."
+        "You need to firstly output the optimized code and your review process, and then output the code after correctness checking."
     )
 
     last_err = None
