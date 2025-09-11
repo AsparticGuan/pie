@@ -73,7 +73,11 @@ def load_database(jsonl_path):
 
             if isinstance(analysis, list):
                 for entry in analysis:
-                    db_text = " ".join(entry.get("Unoptimized Code Conditions", []))
+                    # 支持两种字段
+                    unopt = entry.get("Unoptimized Code Conditions") or entry.get("Unoptimized Code Condition") or []
+                    if isinstance(unopt, str):
+                        unopt = [unopt]
+                    db_text = " ".join(unopt)
                     database.append({
                         "text": db_text,
                         "operation": entry.get("Optimization Operation", "")
@@ -87,7 +91,7 @@ def load_database(jsonl_path):
     print(f"\n✅ Loaded {len(database)} entries from database")
     return database
 
-# ---------------- 主脚本 (GPU batch + 方法一) -------------------
+# ---------------- 主脚本 -------------------
 
 if __name__ == "__main__":
     # 1. 加载数据库
@@ -106,16 +110,19 @@ if __name__ == "__main__":
         optimized_features = parse_optimized_features(raw_optimized, line_no=obj_idx+1)
         if isinstance(optimized_features, list):
             for f_idx, feat in enumerate(optimized_features):
-                if isinstance(feat, dict) and "Unoptimized Code Conditions" in feat:
-                    all_features.append(" ".join(feat["Unoptimized Code Conditions"]))
-                    feature_to_obj_map.append((obj_idx, f_idx))
+                if isinstance(feat, dict):
+                    unopt = feat.get("Unoptimized Code Conditions") or feat.get("Unoptimized Code Condition")
+                    if unopt:
+                        if isinstance(unopt, str):
+                            unopt = [unopt]
+                        all_features.append(" ".join(unopt))
+                        feature_to_obj_map.append((obj_idx, f_idx))
 
     print(f"✅ Total features to match: {len(all_features)}")
 
     # 4. 加载模型
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = SentenceTransformer("nomic-ai/nomic-embed-text-v1.5", trust_remote_code=True, device=device)
-    # model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2", trust_remote_code=True, device=device)
 
     # 5. 计算数据库 embedding
     db_embeddings = model.encode(db_texts, convert_to_tensor=True, show_progress_bar=True)
@@ -123,20 +130,32 @@ if __name__ == "__main__":
     # 6. 批量计算 feature embedding
     feature_embeddings = model.encode(all_features, convert_to_tensor=True, show_progress_bar=True, batch_size=128)
 
-    # 7. 相似度搜索（全部对比 → top1）
+    # 7. 相似度搜索（全部对比 → top1 with threshold）
     cos_scores = util.cos_sim(feature_embeddings, db_embeddings)  # shape: [num_features, num_db]
     top_results = torch.topk(cos_scores, k=1, dim=1)
+
+    SIM_THRESHOLD = 0.8  # 👈 阈值，可以按需求调整
 
     # 8. 回填结果到原始对象
     per_obj_matches = [[] for _ in all_objs]
     for feat_idx, (obj_idx, local_idx) in enumerate(feature_to_obj_map):
-        db_idx = top_results.indices[feat_idx][0].item()
-        per_obj_matches[obj_idx].append({
-            "Unoptimized Code Conditions": all_features[feat_idx],
-            "Optimization Operation": [database[db_idx]["operation"]]
-        })
+        score = top_results.values[feat_idx][0].item()
+        if score >= SIM_THRESHOLD:
+            db_idx = top_results.indices[feat_idx][0].item()
+            per_obj_matches[obj_idx].append({
+                "Unoptimized Code Conditions": all_features[feat_idx],
+                "Optimization Operation": [database[db_idx]["operation"]],
+                # "SimilarityScore": round(score, 4)  # 可选：记录分数
+            })
+        else:
+            # 没超过阈值 → 空匹配
+            per_obj_matches[obj_idx].append({
+                "Unoptimized Code Conditions": all_features[feat_idx],
+                "Optimization Operation": [],
+                # "SimilarityScore": round(score, 4)
+            })
 
-    # 把 matches 写回分析字段 —— 方法一（紧凑 JSON，不缩进）
+    # 把 matches 写回分析字段
     for obj_idx, obj in enumerate(all_objs):
         obj["analysis"] = "```json\n" + json.dumps(per_obj_matches[obj_idx], ensure_ascii=False) + "\n```"
 
@@ -145,4 +164,4 @@ if __name__ == "__main__":
         for obj in all_objs:
             writer.write(obj)
 
-    print("✅ GPU batch matching completed. Results saved to match.jsonl")
+    print("✅ GPU batch matching completed with threshold. Results saved to match.jsonl")
