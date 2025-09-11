@@ -46,8 +46,8 @@ async def process_line(idx: int, line: str, summary: str,
         f"{analysis}\n\n"
         # "Here is a summary of the source code to help you understand it:\n"
         # f"{code_summary}\n\n"
-        "Now optimize the following C++ code by applying the above optimization strategies one by one. \n\n"
-        "If a certain Optimization Strategy is empty, please try to propose a solution based on the corresponding Unoptimized Code Condition."
+        "Now optimize the following C++ code by applying the above optimization strategies one by one. "
+        "If a certain Optimization Strategy is empty, please try to propose a solution based on the corresponding Unoptimized Code Condition. \n\n"
         # "Output the current optimized code after each step, and finally output the complete optimized code using all optimizations.\n\n"
         "```cpp\n"
         f"{src_code}\n"
@@ -67,7 +67,7 @@ async def process_line(idx: int, line: str, summary: str,
     for attempt in range(1, max_retries + 1):
         try:
             response = await client.chat.completions.create(
-                model="gpt-4o-mini",  # 你要的模型
+                model="gpt-4o-mini",  
                 messages=[{"role": "system","content": "You are an expert C/C++ assistant that generates optimized code from slower code versions."},
                           {"role": "user", "content": prompt}],
                 temperature=0.7
