@@ -11,7 +11,8 @@ client = AsyncOpenAI(api_key="no-needed",
     base_url="http://localhost:4141/"
 )
 
-input_file = Path("match.jsonl")
+# input_file = Path("match.jsonl")
+input_file = Path("feature100test_gpt41.jsonl")
 summary_file = Path("sum.jsonl")
 output_file = Path("optm.jsonl")
 
