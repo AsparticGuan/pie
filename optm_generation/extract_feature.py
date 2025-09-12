@@ -29,7 +29,10 @@ async def process_program(record: dict, prompt_template: Template,
         try:
             response = await client.chat.completions.create(
                 model="gpt-4.1",
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{
+                    "role": "system", "content": "You are an expert C/C++ assistant that extracts optimization features from unoptimized code versions.",
+                    "role": "user", "content": prompt}
+                ],
             )
             optimized_features = response.choices[0].message.content.strip()
             record["optimized_features"] = optimized_features
