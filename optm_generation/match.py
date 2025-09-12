@@ -134,7 +134,7 @@ if __name__ == "__main__":
     cos_scores = util.cos_sim(feature_embeddings, db_embeddings)  # shape: [num_features, num_db]
     top_results = torch.topk(cos_scores, k=1, dim=1)
 
-    SIM_THRESHOLD = 0.8  # 👈 阈值，可以按需求调整
+    SIM_THRESHOLD = 0.2  # 👈 阈值，可以按需求调整
 
     # 8. 回填结果到原始对象
     per_obj_matches = [[] for _ in all_objs]
