@@ -65,10 +65,10 @@ async def process_line(idx: int, line: str, summary: str,
     for attempt in range(1, max_retries + 1):
         try:
             response = await client.chat.completions.create(
-                model="openai/gpt-4o-mini",  
+                model="gpt-4o-mini",  
                 messages=[{"role": "system","content": "You are an expert C/C++ assistant that generates optimized code from slower code versions."},
                           {"role": "user", "content": prompt}],
-                temperature=0.2
+                temperature=0
             )
 
             completion = response.choices[0].message.content
