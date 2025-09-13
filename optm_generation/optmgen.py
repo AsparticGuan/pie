@@ -7,9 +7,7 @@ from tqdm.asyncio import tqdm
 from openai import AsyncOpenAI
 
 # 初始化异步客户端
-client = AsyncOpenAI(api_key="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",
-    base_url="https://openrouter.ai/api/v1"
-)
+client = AsyncOpenAI()
 
 input_file = Path("match.jsonl")
 # input_file = Path("feature100test_gpt41.jsonl")
