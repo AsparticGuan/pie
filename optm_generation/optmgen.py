@@ -7,8 +7,8 @@ from tqdm.asyncio import tqdm
 from openai import AsyncOpenAI
 
 # 初始化异步客户端
-client = AsyncOpenAI(api_key="no-needed",
-    base_url="http://localhost:4141/"
+client = AsyncOpenAI(api_key="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",
+    base_url="https://openrouter.ai/api/v1"
 )
 
 input_file = Path("match.jsonl")
@@ -67,7 +67,7 @@ async def process_line(idx: int, line: str, summary: str,
     for attempt in range(1, max_retries + 1):
         try:
             response = await client.chat.completions.create(
-                model="gpt-4o-mini",  
+                model="openai/gpt-4o-mini",  
                 messages=[{"role": "system","content": "You are an expert C/C++ assistant that generates optimized code from slower code versions."},
                           {"role": "user", "content": prompt}],
                 temperature=0.2
