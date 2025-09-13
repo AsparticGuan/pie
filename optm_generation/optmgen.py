@@ -70,7 +70,7 @@ async def process_line(idx: int, line: str, summary: str,
                 model="gpt-4o-mini",  
                 messages=[{"role": "system","content": "You are an expert C/C++ assistant that generates optimized code from slower code versions."},
                           {"role": "user", "content": prompt}],
-                temperature=0.7
+                temperature=0.2
             )
 
             completion = response.choices[0].message.content
